@@ -15,7 +15,7 @@ permissions:
   id-token: write
 
 jobs:
-  setup:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Clone bot repo
@@ -23,33 +23,28 @@ jobs:
       - name: Clone digest repo
         uses: actions/checkout@v3
         with:
-          path: .
+          path: mastodon_digest
           repository: melissawm/mastodon_digest
       - name: Copy style and custom index page
         run: |
           cp -R static mastodon_digest/render/.
           cp index.html.jinja mastodon_digest/templates/themes/light/.
           cp render-info.html.jinja mastodon_digest/templates/common/.
-
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
       - name: Create env file
         shell: bash
         env:
           MASTO_TOKEN: ${{ secrets.MASTODON_TOKEN }}
         run: |
-          echo -e "MASTODON_TOKEN=$MASTO_TOKEN\nMASTODON_BASE_URL=https://bolha.us" > ../../.env
+          echo -e "MASTODON_TOKEN=$MASTO_TOKEN\nMASTODON_BASE_URL=https://bolha.us" > mastodon_digest/.env
       - name: Build
         run: |
+          cd mastodon_digest
           python -m pip install -r requirements.txt
           python run.py --theme light
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
-          path: render
+          path: mastodon_digest/render
 
   deploy:
     environment:
